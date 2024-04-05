@@ -31,7 +31,7 @@ def smallest_eularian_graph(graph):
     # Create a completely connected graph using a list of vertex pairs and the shortest path distances between them
     gf = nx.Graph()
     for k, v in distances.items():
-        gf.add_edge(k[0], k[1], weight= v)  
+        gf.add_edge(k[0], k[1], weight= -v)  
     
     # Compute min weight matching.
     # Note: max_weight_matching uses the 'weight' attribute by default as the attribute to maximize.

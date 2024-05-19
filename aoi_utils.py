@@ -61,7 +61,7 @@ def add_augmenting_path_to_graph(graph, min_weight_pairs):
     # We need to make the augmented graph a MultiGraph so we can add parallel edges
     graph_aug = nx.MultiGraph(graph.copy())
     for pair in min_weight_pairs:
-        aug_path = nx.shortest_path(graph, pair[0], pair[1])
+        aug_path = nx.shortest_path(graph, pair[0], pair[1], weight='weight')
         for edge_pair in list(zip(aug_path[:-1], aug_path[1:])):
             graph_aug.add_edge(edge_pair[0], 
                             edge_pair[1], 
@@ -96,40 +96,29 @@ def AoI_Compute(A,route):
 
     AOI = 0
     # Traverse all edges in the graph
-    for node_1 in range(N):
-        for node_2 in range(node_1+1,N):  
-            if A[node_1][node_2]>0:
-                AOI_current_edge = 0
-                
-                # Find the edge in the patrol route
-                for current_edge in range(M-1,2*M-2):
-                    if (node_1 == two_route[current_edge] and node_2 == two_route[current_edge+1]) or \
-                    (node_2 == two_route[current_edge] and node_1 == two_route[current_edge+1]):
-                        
-                        # Find the last apperence of the edge in the patrol route
-                        last_edge = current_edge - 1
-                        temp_len = 0
-                        while last_edge >= 0:
-                            if (node_1 == two_route[last_edge] and node_2 == two_route[last_edge+1]) or \
-                            (node_2 == two_route[last_edge] and node_1 == two_route[last_edge+1]):
-                                break
-                            temp_len += A[two_route[last_edge]][two_route[last_edge+1]]
-                            last_edge = last_edge - 1
-                        AOI_current_edge += 1/2 * temp_len * A[node_1][node_2] * (temp_len + A[node_1][node_2])
-    #                    AOI_current_edge += 1/6 * A[node_1][node_2]**3
-                        if two_route[last_edge] == two_route[current_edge]:
-                            #clockwise
-                            AOI_current_edge += 1/2 * A[node_1][node_2]**3 + 1/2 * A[node_1][node_2]**2 * temp_len
-                        else:
-                            AOI_current_edge += 2/3 * A[node_1][node_2]**3 + 1/2 * A[node_1][node_2]**2 * temp_len
-                            
-                # If there is edge not in the route, return error
-                if AOI_current_edge == 0:
-                    print("Error: infinite AOI")
-                AOI += AOI_current_edge * weight[node_1][node_2]
+            
+    # Find the edge in the patrol route
+    for current_edge in range(M-1,2*M-2):
+        node_1 = two_route[current_edge]
+        node_2 = two_route[current_edge+1]
+        e0 = (node_1,node_2)
+        temp_len = 0
+        # Find the last apperence of the edge in the patrol route
+        for j in range(current_edge,0,-1):
+            e1 = (two_route[j-1],two_route[j])
+            e2 = (two_route[j],two_route[j-1])
+            if e1 != e0 and e2 != e0:
+                temp_len += A[two_route[j]][two_route[j-1]]
+            elif e1 == e0:
+                AOI += 1/2 * A[node_1][node_2]**3 + 1/2 * temp_len**2*A[node_1][node_2] + temp_len*A[node_1][node_2]**2
+                break
+            elif e2 == e0:
+                AOI += 2/3 * A[node_1][node_2]**3 + 1/2 * temp_len**2*A[node_1][node_2] + temp_len*A[node_1][node_2]**2
+                break
+    # If there is edge not in the route, return error
     AOI = AOI / route_len
-    # print("AOI of the route")
-    # print(AOI) 
+    print("AOI of the route")
+    print(AOI)         
     return AOI
 
 def is_connected_after_removing_edge(G, edge):

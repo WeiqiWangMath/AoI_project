@@ -7,23 +7,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def sum_edges(graph):
-    """Calculate the sum of all edges in a nx graph, includeing repeat edges"""
+    """Calculate the sum of all edges in a nx graph, including repeat edges"""
     edge_weight_sum = sum(weight for (u, v, weight) in graph.edges.data('weight'))
     return edge_weight_sum
 
 def smallest_eularian_graph(graph):
     """
-    Add edges with smallest weight sum to the input graph to create smallest Eularian graph. 
-    A Eularian route of the output graph is a Chinese Postman Problem solution to the original graph.
+    Add edges with the smallest weight sum to the input graph to create the smallest Eulerian graph. 
+    An Eulerian route of the output graph is a Chinese Postman Problem solution to the original graph.
     Input: original graph
-    Output: an Eularian graph contains all edges in original graph
+    Output: an Eulerian graph contains all edges in original graph
     """
     # Calculate list of nodes with odd degree
     nodes_odd_degree = [v for v, d in graph.degree() if d % 2 == 1]
     odd_node_pairs = list(itertools.combinations(nodes_odd_degree, 2))
     l = (len(odd_node_pairs)+1)//2
 
-    # Compute shortest distance between each pair of nodes in a graph.  Return a dictionary keyed on node pairs (tuples)."""
+    # Compute the shortest distance between each pair of nodes in a graph.  Return a dictionary keyed on node pairs (tuples)."""
     distances = {}
     for pair in odd_node_pairs:
         distances[pair] = nx.dijkstra_path_length(graph, pair[0], pair[1], weight='weight')
@@ -43,14 +43,14 @@ def smallest_eularian_graph(graph):
     # Create a new graph to overlay on g_odd_complete with just the edges from the min weight matching
     g_odd_complete_min_edges = nx.Graph(odd_matching)
 
-    # Create augmented graph: add the min weight matching edges to g
+    # Create augmented graph: add the minimum weight matching edges to g
     g_aug = add_augmenting_path_to_graph(graph, odd_matching)
     
     return g_aug
 
 def add_augmenting_path_to_graph(graph, min_weight_pairs):
     """
-    Add the min weight matching edges to the original graph
+    Add the minimum weight matching edges to the original graph
     Parameters:
         graph: NetworkX graph (original graph)
         min_weight_pairs: list[tuples] of node pairs from min weight matching
@@ -76,7 +76,7 @@ def AoI_Compute(A,route):
     Compute the AoI for a given route
     Input: 
     Adjacency matrix A contains the distance between nodes, 0 present no edge between nodes
-    route: Patrol route to compute AoI. Route must start and end at the same node.
+    route: Patrol route to compute AoI. The route must start and end at the same node.
     Output:
     A real number: Route AoI for the graph 
     """
@@ -103,7 +103,7 @@ def AoI_Compute(A,route):
         node_2 = two_route[current_edge+1]
         e0 = (node_1,node_2)
         temp_len = 0
-        # Find the last apperence of the edge in the patrol route
+        # Find the last appearance of the edge in the patrol route
         for j in range(current_edge,0,-1):
             e1 = (two_route[j-1],two_route[j])
             e2 = (two_route[j],two_route[j-1])
@@ -115,7 +115,7 @@ def AoI_Compute(A,route):
             elif e2 == e0:
                 AOI += 2/3 * A[node_1][node_2]**3 + 1/2 * temp_len**2*A[node_1][node_2] + temp_len*A[node_1][node_2]**2
                 break
-    # If there is edge not in the route, return error
+    # If there is an edge not in the route, return the error
     AOI = AOI / route_len
     print("AOI of the route")
     print(AOI)         
@@ -123,7 +123,7 @@ def AoI_Compute(A,route):
 
 def is_connected_after_removing_edge(G, edge):
     """
-    Check if removing the edge separate the graph into two disconnected sets of edges. (An important step in Fleury's algorithm)
+    Check if removing the edge separates the graph into two disconnected sets of edges. (An important step in Fleury's algorithm)
     Input: Graph G and edge
     Output: True: connected after removing edge 
     """
@@ -142,21 +142,21 @@ def is_connected_after_removing_edge(G, edge):
     return is_still_connected
 def heuristic_choice(G, vertex_queue, edges_connect):
     """
-    The heuristic edge-selecting algorithem in order to minimize AoI
+    The heuristic edge-selecting algorithm in order to minimize AoI
     Input:
-        G: Graph contains all edges that have not been patroled.
+        G: The graph contains all edges that have not been patrolled.
         vertex_queue: Current patrol route presented by an ordered node queue
-        edges_connect: All possible edge (to form an Eulerian graph) at current node.
+        edges_connect: All possible edges (to form an Eulerian graph) at the current node.
     Output:
-        (u, v): The edge selection in heuristic algorithm.
+        (u, v): The edge selection in the heuristic algorithm.
     """
     total_len = sum_edges(G)
     
     # We use the time from the last appearance of the edge to determine which edge to traverse:
-    # 1. If the edge is only patroled once in the graph, then set the time is total_len/2
-    # 2. If the edge (u,v) is patroled twice in the graph, but not in the route, set (the time from last traverse) = (the current time)+ min(dist(source,u), dist(source,v)). If the value < total_len/2, we set the value= total_len/2 + 0.01 to priortize them over edges that only be patroled once.
-    # 3. If the edge (u,v) is patroled twice in the graph and in the route, calculate the time from last traverse.
-    # Then selete the edge with maxinum time from the last appearance to traverse, if more than one edge has the same value, we randomly choose one.
+    # 1. If the edge is only patrolled once in the graph, then set the time as total_len/2
+    # 2. If the edge (u,v) is patrolled twice in the graph but not in the route, set (the time from the last traverse) = (the current time)+ dist(source,v). If the value < total_len/2, we set the value= total_len/2 + 0.01 to priortize them over edges that only be patroled once.
+    # 3. If the edge (u,v) is patrolled twice in the graph and in the route, calculate the time from the last traverse.
+    # Then, delete the edge with the maximum time from the last appearance to traverse; if more than one edge has the same value, we randomly choose one.
     
     time_last_app = []
     for u,v in edges_connect:
@@ -171,7 +171,7 @@ def heuristic_choice(G, vertex_queue, edges_connect):
                     break
                 time_temp += G.get_edge_data(vertex_queue[i-1], vertex_queue[i])[0]['weight']
             if not flag_edge_in_route:
-                time_temp += min(nx.shortest_path_length(G, vertex_queue[0], u), nx.shortest_path_length(G, vertex_queue[0], v))
+                time_temp += nx.shortest_path_length(G, vertex_queue[0], v)
                 time_temp = max(total_len/2+0.01, time_temp)
         time_last_app.append(time_temp)
     largest_element = max(time_last_app)
@@ -184,12 +184,12 @@ def heuristic_choice(G, vertex_queue, edges_connect):
 
 def heuristic_AoI_eulerian_circuit(G, source):
     """
-    Modified Fleury's algorithm to heuristically select the route that minimize AoI for a given Eulerian graph. 
+    Modified Fleury's algorithm to heuristically select the route that minimizes AoI for a given Eulerian graph. 
     Input:
         G: An Eulerian graph
         source: source of the route
     Output:
-        The patrol route presented by a queue of vertex. Start and end at source node.
+        The patrol route is presented by a queue of vertex. Start and end at the source node.
     """
     G_temp = G.copy()
     vertex_queue = [source]
@@ -211,12 +211,12 @@ def heuristic_AoI_eulerian_circuit(G, source):
 
 def random_eulerian_circuit(G, source):
     """
-    Fleury's algorithm to generate Eulerian route for a given Eulerian graph. If there are multiple choice when selecting edges, the function randomly select one of them.
+    Fleury's algorithm to generate an Eulerian route for a given Eulerian graph. If there are multiple choices when selecting edges, the function randomly selects one of them.
     Input:
         G: An Eulerian graph
         source: source of the route
     Output:
-        The patrol route presented by a queue of vertex. Start and end at source node.
+        The patrol route is presented by a queue of vertex. Start and end at the source node.
     """
     G_temp = G.copy()
     vertex_queue = [source]
